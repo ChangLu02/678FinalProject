@@ -1,0 +1,101 @@
+---
+title: "FinalProjectProposal"
+author: "Chang Lu"
+date: "2024-11-7"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+chronicdata <- read.csv("C:/Users/beiq1/Desktop/678Finalproject/chronicdata.csv")
+
+head(chronicdata)
+
+dim(chronicdata)
+
+colnames(chronicdata)
+```
+
+```{r}
+# Omit rows where "DataValueAlt" is NA or 0
+chronicdata_filtered <- subset(chronicdata, !is.na(DataValueAlt) & DataValueAlt != 0)
+
+dim(chronicdata_filtered)
+
+```
+
+```{r}
+# Display the unique values in the "Topic" and "TopicID" column
+unique_topics <- unique(chronicdata_filtered$Topic)
+unique_topicsID <- unique(chronicdata_filtered$TopicID)
+
+unique_topics
+unique_topicsID
+
+# Display the count of rows for each unique type in the "Topic" and "TopicID" column
+topic_counts <- table(chronicdata_filtered$Topic)
+
+topicID_counts <- table(chronicdata_filtered$TopicID)
+
+# Print the counts
+topic_counts
+topicID_counts
+```
+
+```{r, include=FALSE}
+#check whether some colums are consisted of NAs
+all(is.na(chronicdata$Response))
+```
+
+```{r, include= FALSE}
+# Check if YearStart and YearEnd columns have the same values for each row
+same_years <- chronicdata$YearStart == chronicdata$YearEnd
+
+# Print the result for each row (TRUE if the same, FALSE if different)
+same_years
+
+# Count the number of rows where YearStart and YearEnd are the same
+num_same_years <- sum(same_years)
+
+num_different_years <- sum(!same_years)
+```
+```{r}
+# Print the count of rows where they are different
+num_different_years
+num_same_years
+```
+```{r}
+unique_location <- unique(chronicdata_filtered$LocationDesc)
+
+unique_location
+```
+
+### Analysis on alcohol issue
+
+```{r}
+# Filter rows where the "Topic" or "Question" column mentions alcohol
+alcohol_data <- subset(chronicdata_filtered, grepl("alcohol", Topic, ignore.case = TRUE) | 
+                                    grepl("alcohol", Question, ignore.case = TRUE))
+
+head(alcohol_data)
+
+summary(alcohol_data$DataValueAlt)
+
+
+```
+
+```{r}
+# Find how many types of the dataset
+Types_alcohol_data <- table(alcohol_data$DataValueType)
+
+Types_alcohol_data
+
+# Split data by DataValueType
+numbers_data <- subset(alcohol_data, DataValueType == "Number")
+crude_prevalence_data <- subset(alcohol_data, DataValueType == "Crude Prevalence")
+age_adjusted_rate_data <- subset(alcohol_data, DataValueType == "Age-adjusted Rate")
+
+```
