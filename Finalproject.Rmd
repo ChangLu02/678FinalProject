@@ -22,18 +22,19 @@ library(caret)
 Abstract
 \end{center}
 
-This report delves into the analysis of the U.S. Chronic Disease Indicators (CDI) – 2023 Release, a comprehensive dataset containing 1,185,676 rows and 34 columns on chronic disease metrics across the United States. The primary focus is on alcohol-related issues, particularly chronic liver disease mortality, exploring geographic, demographic, and temporal patterns through extensive exploratory data analysis (EDA), modeling, and visualization.
+This report delves into the analysis of the U.S. Chronic Disease Indicators (CDI) – 2023 Release, a comprehensive dataset on chronic disease metrics across the United States. The primary focus is on alcohol-related issues, particularly chronic liver disease mortality, exploring geographic, demographic, and temporal patterns through extensive exploratory data analysis (EDA), modeling, and visualization.
 
 
 # Introduction
 
-For my final project, I have chosen the dataset titled “U.S. Chronic Disease Indicators (CDI) – 2023 Release.” This comprehensive dataset encompasses a significant volume of information related to various chronic diseases across the United States. While the dataset's extensive nature presents challenges, it also offers rich opportunities for insightful analysis, which is promising for my development in data analysing skills.
+For my final project, I have chosen the dataset titled “U.S. Chronic Disease Indicators (CDI) – 2023 Release.” While the dataset's extensive nature presents challenges, it also offers rich opportunities for insightful analysis, which is promising for my development in data analysing skills.
 
 ## The Data Source
+
 I got access to the data(“U.S. Chronic Disease Indicators (CDI) – 2023 Release.”)([Link Text](https://catalog.data.gov/dataset/u-s-chronic-disease-indicators-cdi/resource/f89aad64-f014-4e84-a1c1-cbb0d52b575a)) in the website of data.gov([Link text](https://data.gov/)
 ). As the page described, this dataset is intended for public access and use.
 
-```{r}
+```{r, include=FALSE}
 # read the data
 chronicdata <- read.csv("C:/Users/beiq1/Desktop/678Finalproject/chronicdata.csv")
 dim(chronicdata)
@@ -48,7 +49,7 @@ colnames(chronicdata)
 # EDA
 
 ## data cleaning
-```{r}
+```{r, include=FALSE}
 # remove the columns that only contain NA
 chronicdata_filtered <- chronicdata %>% select_if(where(~ !all(is.na(.))))
 
@@ -65,7 +66,7 @@ str(chronicdata_filtered)
 ```
 
 
-```{r, results='hide'}
+```{r, include=FALSE, results='hide'}
 summary(chronicdata_filtered$DataValueAlt)
 
 # Remove rows where DataValueAlt is NA
@@ -80,13 +81,13 @@ Upon examining the dataset, I noticed that the "DataValueAlt" column contains a 
 
 The original dataset encompasses a variety of chronic disease topics. For this analysis, I focused on issues related to alcohol, creating a subset of the data by filtering rows where the "Topic" is "Alcohol."
 
-```{r}
+```{r, include=FALSE}
 # Filter dataset for the topic "Alcohol"
 alcohol_data <- chronicdata_filtered %>% 
   filter(Topic == "Alcohol")
 ```
 
-```{r}
+```{r, include=FALSE}
 # Check dimensions of the filtered dataset
 dim(alcohol_data)
 
@@ -104,11 +105,12 @@ cldm_data <- alcohol_data %>%  filter(Question == "Chronic liver disease mortali
 
 summary(cldm_data)
 ```
+
 ## Understand Different Datatypes
 
 The dataset includes three types of data: "Number," "Age-adjusted Rate," and "Crude Rate." I began by focusing on the "Number" data to draw initial conclusions and build models to predict mortality counts.
 
-```{r}
+```{r, include=FALSE}
 unique(cldm_data$DataValueType)
 
 number_data <- cldm_data %>%
@@ -121,7 +123,7 @@ crude_data <- cldm_data %>%
   filter(DataValueType == "Crude Rate")
 ```
 
-```{r, warning=FALSE}
+```{r, include=FALSE}
 type_summary <- cldm_data %>%
   group_by(DataValueType) %>%
   summarize(
@@ -143,7 +145,7 @@ print(type_summary)
 head(number_data)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Log-transform the DataValue to reduce skewness
 number_data <- number_data %>%
   mutate(LogDataValueAlt = log10(DataValueAlt + 1)) # Adding 1 to avoid log(0)
@@ -152,16 +154,17 @@ number_data <- number_data %>%
 summary(number_data$LogDataValueAlt)
 ```
 
-```{r fig.cap="Origin Distribution of Mortality Counts", echo=FALSE}
+```{r fig.cap="Origin Distribution of Mortality Counts", out.width='50%', echo=FALSE, message=FALSE}
 # Visualization of the counts
 ggplot(number_data, aes(x = DataValueAlt)) +
   geom_histogram(bins = 50, fill = "steelblue", color = "black") +
-  labs(title = "Original Distribution", x = "Mortality Counts", y = "Frequency") +
+  labs(title = "Original Distribution of Mortality Counts", x = "Mortality Counts", y = "Frequency") +
   theme_minimal()
 ```
-As shown in Figure 1, the distribution is highly skewed. To address this, I applied a logarithmic transformation to the "DataValueAlt" column and plotted the transformed data to observe the new distribution. 
 
-```{r fig.cap="Log-Transformed Distribution of Mortality Counts", echo=FALSE}
+As is shown in Figure 1, the distribution is highly skewed. To address this, I applied a logarithmic transformation to the "DataValueAlt" column and plotted the transformed data to observe the new distribution. 
+
+```{r fig.cap="Log-Transformed Distribution of Mortality Counts",out.width='50%', echo=FALSE, message=FALSE}
 # Plot the log-transformed distribution
 ggplot(number_data, aes(x = LogDataValueAlt)) +
   geom_histogram(binwidth = 0.1, fill = "steelblue", color = "black") +
@@ -170,7 +173,7 @@ ggplot(number_data, aes(x = LogDataValueAlt)) +
   theme_minimal()
 ```
 
-```{r fig.cap="Camparison of the Two Plots", echo=FALSE}
+```{r fig.cap="Camparison of the Two Plots", outwidth='50%',echo=FALSE, message=FALSE}
 # Plot original vs. log-transformed data side by side
 library(gridExtra)
 
@@ -204,7 +207,7 @@ print(location_summary)
 
 Firstly, I used "LocationDesc" and the transformed "LogDataValueAlt" to analyze variations in mean mortality counts across different states and regions in the USA. 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, include=FALSE}
 # Rank states based on Mean Log10 Mortality
 ranked_states <- data.frame(State = c("Alabama", "Alaska", "Arizona", "Arkansas", "California", 
                                       "Colorado", "Connecticut", "Delaware", "District of Columbia", 
@@ -239,7 +242,7 @@ ranked_states <- ranked_states %>%
 print(ranked_states)
 ```
 
-```{r fig.cap="Mean Log10 Mortality Count Rank by State", echo=FALSE}
+```{r fig.cap="Mean Log10 Mortality Count Rank by State", out.width='80%',echo=FALSE}
 # Bar plot of ranked states
 ggplot(ranked_states, aes(x = reorder(State, -MeanLog10), y = MeanLog10)) +
   geom_bar(stat = "identity", fill = "steelblue") +
@@ -267,7 +270,7 @@ Higher mortality counts in populous states like California and Texas might refle
 
 In the next step, I divided the "Stratification1" and "StratificationCategory1" columns to extract additional predictors, such as gender and race, for further analysis.
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
 # Group by Gender
 gender_data <- number_data %>%
   filter(StratificationCategory1 == "Gender") %>%
@@ -282,7 +285,21 @@ gender_data <- number_data %>%
 head(gender_data)
 ```
 
-```{R, echo=FALSE}
+| **Gender** | **Mean Value** | **Max Value** | **Count** |
+|------------|----------------|---------------|-----------|
+| Female     | 284            | 2221          | 564       |
+| Male       | 498            | 3959          | 560       |
+
+
+| **Race**                             | **Mean Value** | **Max Value** | **Count** |
+|--------------------------------------|----------------|---------------|-----------|
+| American Indian or Alaska Native     | 67.9           | 263           | 132       |
+| Asian or Pacific Islander            | 66.0           | 345           | 75        |
+| Black, non-Hispanic                  | 106            | 357           | 314       |
+| Hispanic                             | 230            | 2489          | 273       |
+| White, non-Hispanic                  | 577            | 2928          | 550       |
+
+```{R, include=FALSE}
 # Group by Race/Ethnicity
 race_data <- number_data %>%
   filter(StratificationCategory1 == "Race/Ethnicity") %>%
@@ -312,7 +329,7 @@ combined_data <- bind_rows(
 )
 ```
 
-```{r fig.cap="Mean Mortality by Gender and Race", echo=FALSE}
+```{r fig.cap="Mean Mortality by Gender and Race", out.width='80%', echo=FALSE}
 # Bar plot for Mean Log Mortality
 ggplot(combined_data, aes(x = reorder(Group, -MeanValue), y = MeanValue, fill = Category)) +
   geom_bar(stat = "identity") +
@@ -348,7 +365,7 @@ model_data$Stratification1 <- as.factor(model_data$Stratification1)
 ```
 
 
-```{r}
+```{r, include=FALSE}
 # Build a linear model for mortality count prediction (Complete Pooling)
 complete_pooling_model <- lm(DataValueAlt ~ LocationDesc + Stratification1, data = model_data)
 
@@ -450,14 +467,14 @@ summary(no_pooling_model)
 
 #### Poisson Model
 
-```{r, results='hide'}
+```{r, include=FALSE}
 poisson_model <- glm(DataValueAlt ~ LocationDesc + Stratification1, 
                      family = poisson(link = "log"), 
                      data = model_data)
 summary(poisson_model)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Calculate dispersion statistic
 dispersion_stat <- summary(poisson_model)$deviance / summary(poisson_model)$df.residual
 dispersion_stat
@@ -465,7 +482,7 @@ dispersion_stat
 
 A dispersion statistic of 38 is a clear indication of severe overdispersion in the Poisson regression model. This means that the variance of the dependent variable (DataValueAlt) is much larger than the mean, violating the Poisson assumption that variance equals the mean. So it is necessary for a change in model.
 
-```{r, results='hide'}
+```{r, include=FALSE}
 # quasi_poisson model
 quasi_poisson_model <- glm(DataValueAlt ~ LocationDesc + Stratification1, 
                            family = quasipoisson(link = "log"), 
@@ -473,21 +490,26 @@ quasi_poisson_model <- glm(DataValueAlt ~ LocationDesc + Stratification1,
 summary(quasi_poisson_model)
 ```
 
-```{r, results='hide'}
+```{r, include=FALSE}
 # negative binomial model
 neg_binomial_model <- glm.nb(DataValueAlt ~ LocationDesc + Stratification1, 
                              data = model_data)
 summary(neg_binomial_model)
 ```
 
-```{r}
+```{r, include=FALSE}
 # Compare AIC
 AIC(poisson_model, neg_binomial_model)
 ```
 
+| **Model**            | **Degrees of Freedom (df)** | **AIC**       |
+|-----------------------|-----------------------------|---------------|
+| Poisson Model         | 59                          | 134969.56     |
+| Negative Binomial Model| 60                          | 36471.35      |
+
 The result indicates that using negative binomial model is much better than original poisson model.
 
-```{r}
+```{r, echo=FALSE}
 # Extract Pearson residuals
 quasi_residuals <- residuals(quasi_poisson_model, type = "pearson")
 neg_bin_residuals <- residuals(neg_binomial_model, type = "pearson")
@@ -540,7 +562,7 @@ The Negative Binomial model is the best choice due to its:
 ## Rate Data Analysis
 
 ### Basic Visualization
-```{r cap.fig="Mean Mortality Rate Over Time"}
+```{r cap.fig="Mean Mortality Rate Over Time", out.width='60%',echo=FALSE}
 ggplot(adjusted_data, aes(x = YearStart, y = DataValueAlt)) +
   geom_line(stat = "summary", fun = "mean", color = "steelblue") +
   labs(
@@ -551,7 +573,7 @@ ggplot(adjusted_data, aes(x = YearStart, y = DataValueAlt)) +
   theme_minimal()
 ```
 
-```{r fig.cap="Top 10 States by Mean Mortality Rate", echo=FALSE}
+```{r fig.cap="Top 10 States by Mean Mortality Rate",out.width='80%', echo=FALSE}
 # Top 10 states by mean mortality
 adjusted_data %>%
   group_by(LocationDesc) %>%
@@ -570,7 +592,7 @@ adjusted_data %>%
 ```
 According to figure 6, South Dakota has the highest mean mortality rate among the top 10 states(Over 30). New Mexico and Montana follow closely behind, indicating significant health-related challenges in these states.
 
-```{r fig.cap="Bottom 10 States by Mean Mortality", echo=FALSE}
+```{r fig.cap="Bottom 10 States by Mean Mortality",out.width='80%', echo=FALSE}
 
 # Bottom 10 states by mean mortality
 adjusted_data %>%
@@ -615,7 +637,7 @@ summary(linear_model)
 #### Logistic Model
 Logistic regression is only applicable if the outcome have a binary version of the mortality rate (e.g., "high" vs. "low"). So I choose the median of the mortality rate as the threshhold.
 
-```{r, results='hide'}
+```{r, include=FALSE}
 # Ensure the dataset is clean
 adjusted_data <- adjusted_data %>%
   filter(!is.na(DataValueAlt))  # Remove missing values
@@ -648,6 +670,12 @@ confusionMatrix(as.factor(logistic_class), as.factor(test_data$HighMortality))
 
 Interpretation of the Confusion Matrix:
 
+
+| **Prediction** | **Reference: 0** | **Reference: 1** |
+|----------------|-------------------|-------------------|
+| **Predicted 0** | 252               | 48                |
+| **Predicted 1** | 47                | 259               |
+
 The model achieves high accuracy (84.32%) with balanced sensitivity (84.28%) and specificity (84.36%).
 
 High precision values for both classes indicate that the model makes reliable predictions for both class "0" and class "1."
@@ -662,7 +690,7 @@ poisson_model <- glm(as.integer(DataValueAlt) ~ LocationDesc + Stratification1, 
 summary(poisson_model)
 ```
 
-```{r, echo=FALSE}
+```{r, include=FALSE}
 # Residual Deviance and Degrees of Freedom
 residual_deviance <- poisson_model$deviance
 df <- poisson_model$df.residual
@@ -676,11 +704,18 @@ The overdispersion coefficient is 0.8883045, indicating no need for change of po
 
 #### Comparison of the Models
 
-```{r, warning=FALSE}
+```{r, warning=FALSE, include=FALSE}
 AIC(linear_model, logistic_model, poisson_model)
 ```
 
-The logistic model is the best of the three models.
+| **Model**               | **Degrees of Freedom (df)** | **AIC**       |
+|--------------------------|-----------------------------|---------------|
+| Complete Pooling Model   | 60                          | 45961.07      |
+| Partial Pooling Model    | 4                           | 46394.58      |
+| No Pooling Model         | 300                         | 44426.70      |
+| Negative Binomial Model  | 60                          | 36471.35      |
+
+According to the table, the logistic model is the best of the three models.
 
 # Conclusion
 
